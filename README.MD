@@ -1,7 +1,3 @@
-Assolutamente! Ecco un `README.md` chiaro, pronto per essere usato nel tuo progetto **Spring Boot con Podman**:
-
----
-
 ### ✅ `README.md`
 
 ```markdown
