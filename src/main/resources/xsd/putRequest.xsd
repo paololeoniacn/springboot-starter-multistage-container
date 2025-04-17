@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/putRequest" xmlns:tns="http://www.example.org/putRequest" elementFormDefault="qualified">
+
+    <element name="images" type="tns:imagesType"></element>
+    
+    <complexType name="imagesType">
+    	<sequence>
+    		<element name="path" type="string" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+    
+    <element name="openingHours" type="tns:openingHoursType"></element>
+    
+    <complexType name="openingHoursType">
+    	<sequence>
+    		<element name="mon" type="tns:hoursType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+            <element name="tue" type="tns:hoursType" maxOccurs="unbounded" minOccurs="0">
+    		</element>
+            <element name="wed" type="tns:hoursType" maxOccurs="unbounded" minOccurs="0">
+    		</element>
+            <element name="thu" type="tns:hoursType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="fri" type="tns:hoursType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="sat" type="tns:hoursType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    		<element name="sun" type="tns:hoursType"
+    			maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="hoursType">
+    	<sequence>
+    		<element name="start" type="string"></element>
+    		<element name="end" type="string"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="periods" type="tns:periodsType"></element>
+    
+    <complexType name="periodsType">
+    	<sequence>
+    		<element name="close" type="tns:periodType" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="open" type="tns:periodType" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="periodType">
+    	<sequence>
+    		<element name="day" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="time" type="string" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="contact" type="tns:contactType"></element>
+    
+    <complexType name="contactType">
+    	<sequence>
+    		<element name="name" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="surname" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="email" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="fiscalCode" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="jobTitle" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="phoneNumber" type="string" maxOccurs="1"
+    			minOccurs="0">
+    		</element>
+    		<element name="role" type="string" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="legalEntity" type="tns:legalEntityType"></element>
+    
+    <complexType name="legalEntityType">
+    	<sequence>
+    		<element name="country" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="province" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="city" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="zipCode" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="address" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="civicNumber" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="emailPEC" type="string" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="consents" type="tns:consentsType"></element>
+    
+    <complexType name="consentsType">
+    	<sequence>
+    		<element name="allowEventCommunication" type="boolean"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    		<element name="allowEventCommunicationDate" type="string" maxOccurs="1" minOccurs="0"></element>
+    		<element name="allowPromotionalInitiatives" type="boolean"
+    			maxOccurs="1" minOccurs="0">
+    		</element>
+    		<element name="allowPromotionalInitiativesDate" type="string" maxOccurs="1" minOccurs="0"></element>
+    	</sequence>
+    </complexType>
+</schema>
