@@ -23,8 +23,28 @@
 
 ### Infrastruttura
 - Swagger/OpenAPI: `/swagger-ui.html`
-- Actuator: `/actuator/health` e tutti gli endpoint esposti
-- Logback configurato su STDOUT
+- Actuator: esposto per profilo (local=tutto, docker=health+info, prod=health)
+- Logback: plain text in local, JSON strutturato (logstash) in docker/prod
+
+### Security (OWASP baseline)
+- `SecurityConfig`: HSTS, CSP, X-Frame-Options, nosniff, Referrer-Policy
+- Actuator `/actuator/**` bloccato salvo `/health` e `/info`
+- Sessione stateless, CSRF disabilitato (REST API)
+- `GlobalExceptionHandler`: RFC 7807 ProblemDetail, nessun stack trace in response (A04, A09)
+- `dependency-check-suppressions.xml` per falsi positivi verificati
+
+### Profili Spring
+- `local`: Actuator tutto esposto, logging plain text
+- `docker`: Actuator health+info, logging JSON — attivato da Dockerfile e compose.yaml
+- `prod`: Actuator solo health, logging JSON
+
+### CI/CD
+- `.github/workflows/build.yml`: build+test su push/PR + OWASP dependency-check separato
+- `.dockerignore`: `target/`, `.git/`, md files, `.mvn/`
+
+### OWASP
+- `dependency-check-maven:10.0.4` — `mvn dependency-check:check`, fallisce su CVSS ≥ 7
+- NVD API key opzionale in CI (`secrets.NVD_API_KEY`)
 
 ---
 

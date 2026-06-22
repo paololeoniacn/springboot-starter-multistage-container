@@ -1,0 +1,12 @@
+target/
+jabx/
+.git/
+.gitignore
+*.md
+.mvn/
+mvnw
+mvnw.cmd
+build-and-run.ps1
+clean-env.sh
+.vscode/
+.DS_Store
