@@ -1,28 +1,32 @@
-# ------------ Fase 1: Build ------------
-FROM maven:3.9.5-eclipse-temurin-17 AS build
+# ------------ Stage 1: Cache dipendenze Maven ------------
+# Rebuild solo se pom.xml cambia
+FROM maven:3.9.9-eclipse-temurin-17 AS deps
 
-# Crea directory di lavoro
 WORKDIR /app
-
-# Copia i file di progetto e scarica dipendenze
 COPY pom.xml .
+RUN mvn dependency:go-offline -B --no-transfer-progress
+
+
+# ------------ Stage 2: Build ------------
+# Rebuild solo se src/ cambia
+FROM deps AS build
+
 COPY src ./src
-
-# Compila il progetto senza eseguire i test
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B --no-transfer-progress
 
 
-# ------------ Fase 2: Runtime ------------
-FROM eclipse-temurin:17-jre
+# ------------ Stage 3: Runtime ------------
+FROM eclipse-temurin:17-jre-jammy AS runtime
 
-# Crea directory di lavoro
 WORKDIR /app
 
-# Copia il JAR costruito nella fase precedente
+# Utente non-root
+RUN groupadd --system appgroup && \
+    useradd --system --gid appgroup --no-create-home appuser
+USER appuser
+
 COPY --from=build /app/target/*.jar app.jar
 
-# Espone la porta standard di Spring Boot
 EXPOSE 8080
 
-# Comando per avviare l'applicazione
 ENTRYPOINT ["java", "-jar", "app.jar"]

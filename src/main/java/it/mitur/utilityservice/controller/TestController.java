@@ -1,5 +1,6 @@
 package it.mitur.utilityservice.controller;
 
+import it.mitur.utilityservice.dto.UtenteDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;

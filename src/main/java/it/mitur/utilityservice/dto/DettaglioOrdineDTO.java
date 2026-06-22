@@ -1,4 +1,4 @@
-package it.mitur.utilityservice.controller;
+package it.mitur.utilityservice.dto;
 
 public class DettaglioOrdineDTO {
     private String descrizione;

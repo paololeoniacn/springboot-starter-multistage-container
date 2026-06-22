@@ -1,4 +1,4 @@
-package it.mitur.utilityservice.controller;
+package it.mitur.utilityservice.dto;
 
 public class UtenteDTO {
     private Long id;
