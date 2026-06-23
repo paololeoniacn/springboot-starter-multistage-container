@@ -29,4 +29,8 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
+# Il profilo viene impostato via ENV env var → spring.profiles.active=${env} in application.properties
+# Compose locale:    ENV=docker  (carica application-docker.properties)
+# CI/CD staging:     ENV=STAGE
+# Produzione PSN:    ENV=PROD
+ENTRYPOINT ["java", "-jar", "app.jar"]

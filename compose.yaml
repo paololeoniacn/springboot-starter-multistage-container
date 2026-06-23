@@ -1,9 +1,14 @@
 services:
-  pl-generic-app-name:
+  # TODO: RENAME — sostituisci 'mitur-starter' con il nome del tuo package
+  mitur-starter:
     build:
       context: .
       dockerfile: Dockerfile
+    # Carica le variabili d'ambiente da .env (credenziali, host DB, ecc.)
+    # Copia .env.example → .env e valorizza le variabili prima di avviare
+    env_file: .env
     environment:
+      # Carica application-docker.properties (actuator health+info, logging JSON)
       - SPRING_PROFILES_ACTIVE=docker
     ports:
       - "8080:8080"
@@ -13,3 +18,27 @@ services:
       timeout: 10s
       retries: 3
       start_period: 45s
+
+  # ── PostgreSQL (opzionale) ────────────────────────────────────────────────
+  # Decommentare per avviare un'istanza PostgreSQL locale con compose.
+  # TODO: RENAME — sostituisci i valori con quelli del tuo schema DB.
+  #
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_DB: mydb
+  #     POSTGRES_USER: myuser
+  #     POSTGRES_PASSWORD: changeme
+  #     POSTGRES_SCHEMA: public
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:

@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
+		<version>3.5.7</version>
 		<relativePath/>
-		<!-- lookup parent from repository -->
 	</parent>
-	<groupId>it.plgeneric</groupId>
-	<artifactId>pl-generic-app-name</artifactId>
+
+	<!-- ═══════════════════════════════════════════════════════════════════════
+	     TODO: RENAME — sostituisci groupId, artifactId, name, description
+	     con i valori del tuo package (oppure usa ./handle_project.sh init).
+	     ═══════════════════════════════════════════════════════════════════════ -->
+	<groupId>it.mitur</groupId>
+	<artifactId>mitur-starter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>pl-generic-app-name</name>
-	<description>PL Generic App Description</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>mitur-starter</name>
+	<description>MiTur Starter — production-ready Spring Boot boilerplate</description>
+
 	<properties>
 		<java.version>17</java.version>
+		<!-- Versioni allineate ai package di produzione MiTur -->
+		<aws.sdk.version>2.31.22</aws.sdk.version>
+		<springdoc.version>2.8.6</springdoc.version>
+		<lombok.version>1.18.32</lombok.version>
+		<commonslang3.version>3.18.0</commonslang3.version>
 	</properties>
+
+	<!-- ═══════════════════════════════════════════════════════════════════════
+	     AWS SDK v2 BOM — gestisce le versioni di tutti i moduli AWS SDK.
+	     Aggiungere qui nuovi moduli SDK (sts, sqs, sns...) senza specificare version.
+	     ═══════════════════════════════════════════════════════════════════════ -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>${aws.sdk.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
-		<!-- <dependency>
+
+		<!-- ── Spring Boot Core ─────────────────────────────────────────────── -->
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency> -->
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-		<!-- Jakarta JAXB — versione gestita da Spring Boot 3.4.4 -->
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-runtime</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -59,28 +64,60 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<!-- ── API Docs (Swagger UI / OpenAPI) ─────────────────────────────── -->
+
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc.version}</version>
+		</dependency>
+
+		<!-- ── Persistenza ─────────────────────────────────────────────────── -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 		</dependency>
+
+		<!-- ── HTTP Client Reattivo (WebClient) ────────────────────────────── -->
+		<!-- Usato solo come client HTTP: nessun server reattivo, nessuna reactive pipeline. -->
+		<!-- WebClient è più moderno e manutenuto rispetto a RestTemplate.                 -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<!-- ── AWS SDK v2 ───────────────────────────────────────────────────── -->
+		<!-- Versione gestita dal BOM sopra. Aggiungere altri moduli senza <version>. -->
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+		</dependency>
+
+		<!-- ── Logging: Log4j2 API → Logback backend ────────────────────────── -->
+		<!-- Il codice usa Log4j2 API (LogManager.getLogger) in LogUtil e WebClientConfig. -->
+		<!-- Il backend reale è Logback (incluso da spring-boot-starter-web).             -->
+		<!-- log4j-to-slf4j instrada le chiamate Log4j2 API verso SLF4J → Logback.       -->
+		<!-- Questa combinazione è il pattern standard MiTur per il logging.              -->
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<!-- versione gestita dal BOM Spring Boot -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-to-slf4j</artifactId>
+			<!-- versione gestita dal BOM Spring Boot -->
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -91,11 +128,190 @@
 			<artifactId>logback-classic</artifactId>
 		</dependency>
 
+		<!-- ── Utilities ────────────────────────────────────────────────────── -->
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commonslang3.version}</version>
+		</dependency>
+
+		<!-- .env file support in local dev (attivato da spring-dotenv automaticamente) -->
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<!-- JSON parsing utility (org.json.JSONObject) -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20240303</version>
+		</dependency>
+
+		<!-- ── Lombok ───────────────────────────────────────────────────────── -->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- ── Dev Tools ────────────────────────────────────────────────────── -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- ── Test ─────────────────────────────────────────────────────────── -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- H2 in-memory per context test senza PostgreSQL reale (profilo test) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     DIPENDENZE OPZIONALI — decommentare se necessarie per il tuo package
+		     ═══════════════════════════════════════════════════════════════════ -->
+
+		<!-- Retry (@Retryable, @EnableRetry) — per chiamate HTTP con ripetizione automatica -->
+		<!-- Aggiungere @EnableRetry in StarterApplication.java se abilitato               -->
+		<!--
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		-->
+
+		<!-- Mail (JavaMailSender) — per invio email/PEC -->
+		<!--
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		-->
+
+		<!-- JWT (JJWT) — per firma RSA con chiave privata -->
+		<!--
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.13.0</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.13.0</version>
+			<scope>runtime</scope>
+		</dependency>
+		-->
+
+		<!-- BouncyCastle (RSA keys avanzate) — per sign JWT con chiave PEM -->
+		<!--
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.82</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>1.82</version>
+		</dependency>
+		-->
+
+		<!-- SFTP (JSch) — per trasferimento file via SFTP -->
+		<!--
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.55</version>
+		</dependency>
+		-->
+
+		<!-- ═══════════════════════════════════════════════════════════════════
+		     JAXB (XSD → Java) — DISABILITATO PER DEFAULT
+		     Non necessario per la maggior parte dei package MiTur.
+		     Decommentare solo se il tuo package usa schemi XSD.
+		     Vedi README-XSD.md per le istruzioni di abilitazione.
+		     ═══════════════════════════════════════════════════════════════════ -->
+		<!--
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+		-->
+
 	</dependencies>
 
 	<build>
 		<plugins>
-			<!-- JAXB: genera classi da XSD (Jakarta EE, output in target/generated-sources/jaxb) -->
+
+			<!-- ── OWASP Dependency Check ───────────────────────────────────────── -->
+			<!-- Esecuzione: mvn dependency-check:check                              -->
+			<!-- Fallisce la build se una dipendenza ha CVSS >= 7 (High/Critical)   -->
+			<!-- NVD API key in CI: secrets.NVD_API_KEY (opzionale, senza è lento)  -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>10.0.4</version>
+				<configuration>
+					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+				</configuration>
+			</plugin>
+
+			<!-- ── Spring Boot Maven Plugin ─────────────────────────────────────── -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<!-- ═══════════════════════════════════════════════════════════════════
+			     JAXB Plugin — DISABILITATO PER DEFAULT
+			     Decommentare se il tuo package usa XSD → Java generation.
+			     Vedi README-XSD.md per le istruzioni.
+			     ═══════════════════════════════════════════════════════════════════ -->
+			<!--
 			<plugin>
 				<groupId>org.jvnet.jaxb</groupId>
 				<artifactId>jaxb-maven-plugin</artifactId>
@@ -113,33 +329,11 @@
 						<include>putRequest.xsd</include>
 					</schemaIncludes>
 					<generateDirectory>${project.build.directory}/generated-sources/jaxb</generateDirectory>
-					<generatePackage>it.mitur.utilityservice.generated</generatePackage>
+					<generatePackage>it.mitur.starter.generated</generatePackage>
 				</configuration>
 			</plugin>
-			<!-- OWASP Dependency Check: mvn dependency-check:check -->
-			<plugin>
-				<groupId>org.owasp</groupId>
-				<artifactId>dependency-check-maven</artifactId>
-				<version>10.0.4</version>
-				<configuration>
-					<!-- Fallisce la build se CVSS >= 7 (High/Critical) -->
-					<failBuildOnCVSS>7</failBuildOnCVSS>
-					<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
-				</configuration>
-			</plugin>
+			-->
 
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 

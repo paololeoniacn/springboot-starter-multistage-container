@@ -1,76 +1,82 @@
-# State of Affairs
+# State of Affairs — MiTur Starter Boilerplate
 
-## Fatto
+## Versione corrente
 
-### Struttura base
-- Spring Boot 3.4.4 / Java 17 / Maven 3.9.9
-- Package layout: `controller/`, `dto/`, `generated/`
-- DTOs separati dai controller
-- `HelloWorldController`, `TestController`, `AvanzatoController` come esempi boilerplate
-
-### JAXB (XSD → Java)
-- Migrato da `javax.xml.bind` (legacy) a `jakarta.xml.bind` (Jakarta EE 9+)
-- Plugin: `org.jvnet.jaxb:jaxb-maven-plugin:4.0.9`
-- Output: `target/generated-sources/jaxb/it/mitur/utilityservice/generated/`
-- XSD in `src/main/resources/xsd/putRequest.xsd`
-- `jabx/` gitignored
-
-### Container / Deploy
-- Dockerfile multistage 3 stage (deps cache → build → runtime non-root)
-- `compose.yaml` cross-platform (docker/podman)
-- `handle_project.sh` — CLI unificata: build, deploy, start, stop, restart, logs, status, shell, clean, reset
-- `build-and-run.sh` aggiornato (rimosso doppio build, auto-detect podman/docker)
-
-### Infrastruttura
-- Swagger/OpenAPI: `/swagger-ui.html`
-- Actuator: esposto per profilo (local=tutto, docker=health+info, prod=health)
-- Logback: plain text in local, JSON strutturato (logstash) in docker/prod
-
-### Security (OWASP baseline)
-- `SecurityConfig`: HSTS, CSP, X-Frame-Options, nosniff, Referrer-Policy
-- Actuator `/actuator/**` bloccato salvo `/health` e `/info`
-- Sessione stateless, CSRF disabilitato (REST API)
-- `GlobalExceptionHandler`: RFC 7807 ProblemDetail, nessun stack trace in response (A04, A09)
-- `dependency-check-suppressions.xml` per falsi positivi verificati
-
-### Profili Spring
-- `local`: Actuator tutto esposto, logging plain text
-- `docker`: Actuator health+info, logging JSON — attivato da Dockerfile e compose.yaml
-- `prod`: Actuator solo health, logging JSON
-
-### CI/CD
-- `.github/workflows/build.yml`: build+test su push/PR + OWASP dependency-check separato
-- `.dockerignore`: `target/`, `.git/`, md files, `.mvn/`
-
-### OWASP
-- `dependency-check-maven:10.0.4` — `mvn dependency-check:check`, fallisce su CVSS ≥ 7
-- NVD API key opzionale in CI (`secrets.NVD_API_KEY`)
+Spring Boot 3.5.7 / Java 17 / Maven 3.9.9
+Package base: `it.mitur.starter`
+Ultimo aggiornamento: 2026-06-23
 
 ---
 
-## In corso / Prossimo step
+## Stato boilerplate
 
-### Database (PostgreSQL + Flyway)
-- [ ] Ricevere dump PostgreSQL dall'utente (tabelle, enum, constraints)
-- [ ] Aggiungere dipendenze: `spring-boot-starter-data-jpa`, `postgresql`, `flyway-core`
-- [ ] Configurare `application.properties` con datasource (+ profilo `local` vs `docker`)
-- [ ] Creare migration iniziale `V1__init.sql` da dump fornito
-- [ ] Scrivere `@Entity` JPA a mano per le tabelle principali
-- [ ] Aggiornare `compose.yaml` con servizio `postgres` + volume persistente
-- [ ] Aggiornare `handle_project.sh` per gestire anche il db (wait-for-postgres, migrate)
-- [ ] Aggiungere variabili d'ambiente DB nel Dockerfile/compose (non hardcoded)
+### Stack e infrastruttura
+- Spring Boot 3.5.7, Java 17, Maven 3.9.9
+- AWS SDK v2 BOM — gestisce versioni S3/STS/SQS
+- PostgreSQL + HikariCP (pool size=5, idle=300s, max-lifetime=1800s)
+- Spring WebFlux — solo WebClient, non server reattivo
+- Podman/Docker — multistage Dockerfile, compose con `.env`
 
-### Test
-- [ ] Aggiungere Testcontainers per integration test con PostgreSQL reale
-- [ ] Test repository JPA base
+### Logging
+- `logback-spring.xml` — profilo DEV/STAGE=INFO, PROD=ERROR; override via `mitur.logging.root-level`
+- `LogUtil.java` — centralizza ERROR senza stacktrace in produzione; prefisso ❌ per scanning visivo
+- Ponte Log4j2 API → SLF4J → Logback (`log4j-to-slf4j`)
 
-### Da decidere
-- [ ] Strategia profili Spring: `local` (H2 o Postgres locale), `docker` (Postgres in compose), `prod`
-- [ ] Secret management (env var, Vault, o altro)
+### Audit trail
+- `AuditHelper.java` — orchestra S3 + PostgreSQL per ogni ciclo richiesta/risposta
+  - Logga SOLO il path S3, mai il contenuto JSON (no PII nei log)
+  - Path S3 configurabile via `mitur.audit.s3-path-prefix`
+- `PostgresService.java` — pattern `logActivity()` unificato, append-only
+- `S3Service.java` — upload a 3 file: `.json` + backup + `.trg`
+- `AppInPut.java`, `AppActivityLog.java` — entità template (TODO: RENAME per ogni package)
+- `AnagParameter.java` — tabella di configurazione runtime condivisa
+
+### Sicurezza e validazione
+- `SecurityConfig.java` — OWASP baseline: HSTS, CSP, X-Frame, nosniff, stateless, CSRF off
+- `JacksonDuplicateKeysConfig.java` — rifiuta JSON con chiavi duplicate → 400
+- `SingleValueQueryParamFilter.java` — rifiuta query param duplicati su `/api/**` → 400
+- `WebClientConfig.java` — connection pool PSN (240s idle < 330s timeout), responseTimeout(60s)
+- `S3Config.java` — bean `s3Client()` generico da env vars
+- `GlobalExceptionHandler.java` — usa `ErrorResponse(errorCode, message)` (no RFC 7807)
+
+### Configurazione e deploy
+- `application.properties` — tutte le sezioni: S3, PostgreSQL, HikariCP, WebClient, UTF-8
+- Tutte le credenziali da env vars — mai hardcoded
+- `application-test.properties` — H2 in-memory + stub AWS per CI senza infrastruttura
+- `Dockerfile` — 3-stage multistage, ENTRYPOINT senza profilo hardcoded
+- `compose.yaml` — `env_file: .env`, PostgreSQL commentato
+- `handle_project.sh` / `handle_project.ps1` — CLI completa: init, build, deploy, logs, status, shell, clean, reset
+
+### Test e CI
+- `HelloWorldControllerTest` — `@SpringBootTest + @ActiveProfiles("test")` con H2
+- GitHub Actions: build + test sul push; OWASP dependency check separato (non bloccante)
+
+---
+
+## TODO per il tuo package (post-clone)
+
+Dopo `./handle_project.sh init` (o `.\handle_project.ps1 init`), completare manualmente i TODO: RENAME:
+
+| File | Operazione |
+|---|---|
+| `StarterApplication.java` | Rinomina classe e file |
+| `AppInPut.java` | Rinomina classe + tabella DB |
+| `AppActivityLog.java` | Rinomina classe + tabella DB |
+| `AppInPutRepository.java` | Rinomina + aggiorna tipo entità |
+| `AppActivityLogRepository.java` | Rinomina + aggiorna tipo entità |
+| `PostgresService.java` | Aggiorna tipi nelle firme |
+| `AuditHelper.java` | Aggiorna tipo AppInPut |
+| `WebClientConfig.java` | Aggiungi i tuoi bean WebClient reali |
+| `application.properties` | Controlla `mitur.audit.s3-path-prefix` |
+| `pom.xml` | Controlla groupId/artifactId post-init |
+| `compose.yaml` | Rinomina service name se vuoi |
 
 ---
 
 ## Note architetturali
-- Il boilerplate è pensato per essere clonato e adattato per ogni progetto MiTur
-- Le tabelle del dump PostgreSQL sono condivise tra più progetti → le migration V1 saranno il "core schema"
-- Le entity JPA vanno scritte a mano (no reverse engineering) per avere controllo totale
+
+- `AnagParameter` è una tabella condivisa tra tutti i package MiTur — non rinominare
+- `ddl-auto=none`: le tabelle sono gestite manualmente o via Flyway — mai auto-create in produzione
+- HikariCP: pool size=5, idle=300s, max-lifetime=1800s
+- WebClient: idle=240s < 330s PSN timeout, responseTimeout=60s — impedisce blocchi indefiniti su API irraggiungibili
+- JAXB disabilitato per default — abilitare solo se il package usa XSD (vedi README-XSD.md)

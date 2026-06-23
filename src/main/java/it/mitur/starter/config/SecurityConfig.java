@@ -1,4 +1,4 @@
-package it.plgeneric.plgenericapp.config;
+package it.mitur.starter.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,10 +11,12 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Security configuration — OWASP Top 10 baseline.
  *
+ * Pronto all'uso — nessun TODO: RENAME necessario.
+ *
  * A01 – Access Control  : Actuator /actuator/** bloccato salvo health/info.
- *                         Swagger permesso. TODO: aggiungere JWT/OAuth2.
+ *                         Swagger permesso. TODO: aggiungere JWT/OAuth2 per i tuoi endpoint.
  * A05 – Misconfiguration: Security headers HTTP abilitati (HSTS, CSP, X-Frame, nosniff).
- * A07 – Auth Failures   : Session stateless, no HTTP Basic default.
+ * A07 – Auth Failures   : Sessione stateless, no HTTP Basic default, no CSRF (REST API).
  */
 @Configuration
 @EnableWebSecurity
@@ -47,7 +49,7 @@ public class SecurityConfig {
 
             // ── OWASP A01: Access Control ─────────────────────────────────────
             .authorizeHttpRequests(auth -> auth
-                // Actuator: solo health e info pubblici
+                // Actuator: solo health e info pubblici (liveness/readiness probe)
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 // Tutti gli altri endpoint actuator bloccati
                 .requestMatchers("/actuator/**").denyAll()

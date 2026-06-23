@@ -1,0 +1,64 @@
+<!--
+	LOGBACK UNIFICATO — MiTur Boilerplate
+	======================================
+
+	Comportamento automatico:
+	  • PROD     → ROOT=ERROR  (solo errori, nessun dettaglio in produzione)
+	  • NON-PROD → ROOT=INFO   (info e superiori)
+
+	Override centralizzato (vince sempre sull'automatico):
+	  application.properties → mitur.logging.root-level=INFO|DEBUG|WARN|ERROR
+
+	Per singolo package/logger, aggiungere <logger> dentro <configuration>
+	(vale per tutti gli ambienti) o dentro il blocco <springProfile> voluto.
+
+	Pattern di output:
+	  %d{..., Europe/Rome} : timestamp in ora di Roma
+	  %-5level             : livello allineato a sinistra (5 caratteri)
+	  %logger{36}          : nome classe chiamante reale (NON LogUtil)
+	  %msg                 : messaggio log
+	  %ex                  : stacktrace completo SOLO se la Throwable è presente
+	                         (con LogUtil il stacktrace appare SOLO a livello DEBUG)
+
+	Pronto all'uso — nessun TODO: RENAME necessario.
+-->
+<configuration>
+
+  <property name="LOG_PATTERN"
+    value="%d{yyyy-MM-dd HH:mm:ss.SSS, Europe/Rome} %-5level %logger{36} - %msg%n%ex"/>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Fallback: sempre presente (evita 'STDOUT not referenced' se nessun profilo combacia) -->
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+  <!-- DEV/STAGE: default ROOT=INFO; overridable via mitur.logging.root-level -->
+  <springProfile name="DEV,dev,STAGE,stage">
+    <springProperty scope="context" name="ROOT_LEVEL" source="mitur.logging.root-level" defaultValue="INFO"/>
+    <root level="${ROOT_LEVEL}">
+      <appender-ref ref="STDOUT"/>
+    </root>
+  </springProfile>
+
+  <!-- PROD: default ROOT=ERROR; overridable via mitur.logging.root-level -->
+  <springProfile name="PROD,prod">
+    <springProperty scope="context" name="ROOT_LEVEL" source="mitur.logging.root-level" defaultValue="ERROR"/>
+    <root level="${ROOT_LEVEL}">
+      <appender-ref ref="STDOUT"/>
+    </root>
+  </springProfile>
+
+  <!-- Esempi di logger mirati (aggiungere qui o dentro il blocco springProfile voluto):
+       <logger name="it.mitur.starter" level="DEBUG"/>
+       <logger name="org.springframework.web" level="WARN"/>
+       <logger name="com.zaxxer.hikari" level="DEBUG"/>
+       <logger name="org.springframework.web.reactive.function.client" level="DEBUG"/>
+  -->
+
+</configuration>

@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# handle_project.sh — Project manager (Mac/Linux)
+# handle_project.sh — MiTur Starter project manager (Mac/Linux)
 # =============================================================================
 # Uso: ./handle_project.sh <comando>
 #
@@ -22,7 +22,9 @@
 set -euo pipefail
 
 # ── Configurazione ──────────────────────────────────────────────────────────
-IMAGE_NAME="pl-generic-app-name"
+# TODO: RENAME — init aggiorna IMAGE_NAME automaticamente, ma se usi
+#       deploy/start senza init, aggiorna questo valore manualmente.
+IMAGE_NAME="mitur-starter"
 CONTAINER_NAME="${IMAGE_NAME}-container"
 PORT=8080
 HEALTH_URL="http://localhost:${PORT}/actuator/health"
@@ -99,22 +101,24 @@ print_urls() {
 # ── Init ─────────────────────────────────────────────────────────────────────
 cmd_init() {
     # Verifica che i placeholder siano ancora presenti
-    if ! grep -qF "pl-generic-app-name" pom.xml 2>/dev/null; then
-        echo -e "${YELLOW}⚠️  Placeholder non trovati in pom.xml.${RESET}"
+    if ! grep -qF "mitur-starter" pom.xml 2>/dev/null; then
+        echo -e "${YELLOW}⚠️  Placeholder 'mitur-starter' non trovato in pom.xml.${RESET}"
         echo -e "   Progetto già inizializzato, o non sei nella root del progetto."
         exit 1
     fi
 
-    echo -e "\n${BOLD}🚀 Inizializzazione nuovo progetto${RESET}"
+    echo -e "\n${BOLD}🚀 Inizializzazione nuovo progetto MiTur${RESET}"
     echo -e "────────────────────────────────────────\n"
+    echo -e "  Questo comando sostituisce i placeholder 'mitur-starter' con i valori"
+    echo -e "  specifici del tuo package. Eseguirlo UNA SOLA VOLTA dopo il clone.\n"
 
     # 1. App name (kebab-case)
     while true; do
-        read -rp "  Nome progetto (kebab-case, es. web-app): " APP_NAME
+        read -rp "  Nome progetto (kebab-case, es. myapp, web-service): " APP_NAME
         if [[ "$APP_NAME" =~ ^[a-z][a-z0-9-]+$ ]]; then
             break
         else
-            echo -e "  ${RED}❌ Solo minuscole, numeri e trattini. Es: web-app, mitur-core${RESET}"
+            echo -e "  ${RED}❌ Solo minuscole, numeri e trattini. Es: myapp, my-service${RESET}"
         fi
     done
 
@@ -132,7 +136,7 @@ cmd_init() {
     read -rp "  Descrizione [$APP_NAME]: " APP_DESC
     APP_DESC="${APP_DESC:-$APP_NAME}"
 
-    # 4. Prefisso tabelle DB
+    # 4. Prefisso tabelle DB (es. myd_ → myd_in_put, myd_activity_log)
     local default_prefix
     default_prefix="$(echo "$APP_NAME" | tr '-' '_' | cut -c1-3)_"
     read -rp "  Prefisso tabelle DB [$default_prefix]: " DB_PREFIX
@@ -154,7 +158,8 @@ cmd_init() {
     echo -e "  App name    : ${CYAN}${APP_NAME}${RESET}"
     echo -e "  Group ID    : ${CYAN}${GROUP_ID}${RESET}"
     echo -e "  Java package: ${CYAN}${JAVA_PKG}${RESET}"
-    echo -e "  DB prefix   : ${CYAN}${DB_PREFIX}${RESET}"
+    echo -e "  DB prefix   : ${CYAN}${DB_PREFIX}${RESET}  (es: ${DB_PREFIX}in_put, ${DB_PREFIX}activity_log)"
+    echo -e "  S3 prefix   : ${CYAN}internal/${APP_NAME}${RESET}"
     echo -e "  Descrizione : ${CYAN}${APP_DESC}${RESET}"
     echo ""
     read -rp "Confermi? [y/N] " confirm
@@ -171,16 +176,21 @@ cmd_init() {
     fi
 
     # File di testo su cui fare replace
-    # ORDINE CRITICO: token più lunghi prima (evita sostituzioni parziali)
+    # ORDINE CRITICO: token più lunghi/specifici PRIMA (evita sostituzioni parziali)
     while IFS= read -r -d '' f; do
-        eval "$SED_I 's|it\\.plgeneric\\.plgenericapp|${JAVA_PKG}|g'           \"$f\""
-        eval "$SED_I 's|it/plgeneric/plgenericapp|${JAVA_PKG_PATH}|g'          \"$f\""
-        eval "$SED_I 's|it\\.plgeneric|${GROUP_ID}|g'                          \"$f\""
-        eval "$SED_I 's|it/plgeneric|${GROUP_ID_PATH}|g'                       \"$f\""
-        eval "$SED_I 's|plgenericapp|${JAVA_APP_SEG}|g'                        \"$f\""
-        eval "$SED_I 's|pl-generic-app-name|${APP_NAME}|g'                     \"$f\""
-        eval "$SED_I 's|pl_generic_|${DB_PREFIX}|g'                            \"$f\""
-        eval "$SED_I 's|PL Generic App Description|${APP_DESC}|g'              \"$f\""
+        # 1. Pacchetto Java completo (es. it.mitur.starter → it.mitur.myapp)
+        eval "$SED_I 's|it\\.mitur\\.starter|${JAVA_PKG}|g'              \"$f\""
+        eval "$SED_I 's|it/mitur/starter|${JAVA_PKG_PATH}|g'             \"$f\""
+        # 2. Group ID (es. it.mitur → it.mitur — no-op se stesso, oppure it.example)
+        eval "$SED_I 's|it\\.mitur|${GROUP_ID}|g'                        \"$f\""
+        eval "$SED_I 's|it/mitur|${GROUP_ID_PATH}|g'                     \"$f\""
+        # 3. App name (es. mitur-starter → myapp)
+        eval "$SED_I 's|mitur-starter|${APP_NAME}|g'                     \"$f\""
+        # 4. Tabelle DB template (es. app_in_put → myd_in_put)
+        eval "$SED_I 's|app_in_put|${DB_PREFIX}in_put|g'                 \"$f\""
+        eval "$SED_I 's|app_activity_log|${DB_PREFIX}activity_log|g'     \"$f\""
+        # 5. Path S3 audit (es. internal/starter → internal/myapp)
+        eval "$SED_I 's|internal/starter|internal/${APP_NAME}|g'         \"$f\""
     done < <(find . \
         -not -path './.git/*' \
         -not -path './target/*' \
@@ -194,32 +204,34 @@ cmd_init() {
         \) -print0)
 
     # Rinomina directory Java sorgenti (main)
-    local OLD_MAIN="src/main/java/it/plgeneric/plgenericapp"
+    local OLD_MAIN="src/main/java/it/mitur/starter"
     local NEW_MAIN="src/main/java/${JAVA_PKG_PATH}"
     if [ -d "$OLD_MAIN" ]; then
         mkdir -p "$(dirname "$NEW_MAIN")"
         mv "$OLD_MAIN" "$NEW_MAIN"
-        # Rimuovi parent vuoti
-        find "src/main/java/it/plgeneric" -type d -empty -delete 2>/dev/null || true
-        rmdir "src/main/java/it/plgeneric" 2>/dev/null || true
+        find "src/main/java/it/mitur" -type d -empty -delete 2>/dev/null || true
+        rmdir "src/main/java/it/mitur" 2>/dev/null || true
     fi
 
     # Rinomina directory Java sorgenti (test)
-    local OLD_TEST="src/test/java/it/plgeneric/plgenericapp"
+    local OLD_TEST="src/test/java/it/mitur/starter"
     local NEW_TEST="src/test/java/${JAVA_PKG_PATH}"
     if [ -d "$OLD_TEST" ]; then
         mkdir -p "$(dirname "$NEW_TEST")"
         mv "$OLD_TEST" "$NEW_TEST"
-        find "src/test/java/it/plgeneric" -type d -empty -delete 2>/dev/null || true
-        rmdir "src/test/java/it/plgeneric" 2>/dev/null || true
+        find "src/test/java/it/mitur" -type d -empty -delete 2>/dev/null || true
+        rmdir "src/test/java/it/mitur" 2>/dev/null || true
     fi
 
     echo -e "\n${GREEN}✅ Progetto inizializzato come '${APP_NAME}'${RESET}"
     echo -e "   Java package : ${CYAN}${JAVA_PKG}${RESET}"
     echo -e "   DB prefix    : ${CYAN}${DB_PREFIX}${RESET}"
+    echo -e "   S3 prefix    : ${CYAN}internal/${APP_NAME}${RESET}"
+    echo -e "\n${YELLOW}   ⚠️  TODO: RENAME — completa manualmente i rinomi guidati dai commenti"
+    echo -e "       nelle sorgenti (StarterApplication → tua classe, AppInPut → tua entità, ecc.)${RESET}"
     echo -e "\n   Verifica build: ${BOLD}mvn clean package -DskipTests${RESET}"
     echo -e "   Avvia:         ${BOLD}./handle_project.sh deploy${RESET}"
-    echo ""
+    echo -e ""
     echo -e "${YELLOW}   💡 Riavvia questo script per usare il nuovo IMAGE_NAME.${RESET}"
 }
 
@@ -248,6 +260,7 @@ cmd_start() {
         fi
         echo -e "\n🚀 Avvio container sulla porta ${PORT}..."
         $TOOL run -d --name "$CONTAINER_NAME" -p "${PORT}:8080" \
+            --env-file .env \
             -e SPRING_PROFILES_ACTIVE=docker \
             "$IMAGE_NAME"
     fi
@@ -264,6 +277,7 @@ cmd_deploy() {
     fi
     echo -e "\n🚀 Avvio container sulla porta ${PORT}..."
     $TOOL run -d --name "$CONTAINER_NAME" -p "${PORT}:8080" \
+        --env-file .env \
         -e SPRING_PROFILES_ACTIVE=docker \
         "$IMAGE_NAME"
     wait_healthy
@@ -379,13 +393,13 @@ cmd_reset() {
 
 cmd_help() {
     echo -e ""
-    echo -e "${BOLD}handle_project.sh${RESET} — Project manager (Mac/Linux)"
+    echo -e "${BOLD}handle_project.sh${RESET} — MiTur Starter project manager (Mac/Linux)"
     echo -e ""
     echo -e "${BOLD}USO${RESET}"
     echo -e "  ./handle_project.sh <comando>"
     echo -e ""
     echo -e "${BOLD}COMANDI${RESET}"
-    echo -e "  ${CYAN}init${RESET}      Inizializza il progetto (sostituisce placeholder)"
+    echo -e "  ${CYAN}init${RESET}      Inizializza il progetto (sostituisce placeholder — una volta sola)"
     echo -e "  ${CYAN}build${RESET}     Build immagine (multistage Dockerfile)"
     echo -e "  ${CYAN}deploy${RESET}    Build + avvio container (full redeploy)"
     echo -e "  ${CYAN}start${RESET}     Avvia container (senza rebuild)"
@@ -400,9 +414,13 @@ cmd_help() {
     echo -e ""
     echo -e "${BOLD}WORKFLOW NUOVO PROGETTO${RESET}"
     echo -e "  git clone <repo> <my-project> && cd <my-project>"
+    echo -e "  cp .env.example .env && # valorizza .env con i tuoi segreti"
     echo -e "  ./handle_project.sh init      # configura nome, groupId, DB prefix"
     echo -e "  mvn clean package -DskipTests # verifica build"
     echo -e "  ./handle_project.sh deploy    # build image + run"
+    echo -e ""
+    echo -e "${BOLD}TEST IN CI (senza infrastruttura)${RESET}"
+    echo -e "  mvn test -Dspring.profiles.active=test   # H2 in-memory, no AWS/PostgreSQL"
     echo -e ""
 }
 
