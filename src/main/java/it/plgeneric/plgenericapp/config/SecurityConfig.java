@@ -1,4 +1,4 @@
-package it.mitur.utilityservice.config;
+package it.plgeneric.plgenericapp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

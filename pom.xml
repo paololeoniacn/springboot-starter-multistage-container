@@ -9,11 +9,11 @@
 		<relativePath/>
 		<!-- lookup parent from repository -->
 	</parent>
-	<groupId>it.mitur.utility</groupId>
-	<artifactId>utility-service</artifactId>
+	<groupId>it.plgeneric</groupId>
+	<artifactId>pl-generic-app-name</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>utility-service</name>
-	<description>MiTur Utility Service</description>
+	<name>pl-generic-app-name</name>
+	<description>PL Generic App Description</description>
 	<url/>
 	<licenses>
 		<license/>

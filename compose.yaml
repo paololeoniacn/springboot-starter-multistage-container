@@ -1,5 +1,5 @@
 services:
-  utility-service:
+  pl-generic-app-name:
     build:
       context: .
       dockerfile: Dockerfile

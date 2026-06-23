@@ -1,4 +1,4 @@
-package it.mitur.utilityservice;
+package it.plgeneric.plgenericapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

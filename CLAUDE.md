@@ -4,7 +4,7 @@
 
 ## Stack
 - Java 17, Spring Boot 3.4.4, Maven 3.9.9
-- Containerization: Podman (preferred) or Docker — auto-detected by `handle_project.sh`
+- Containerization: Podman — `handle_project.sh` (Mac/Linux), `HP.ps1` (Windows)
 - JAXB: Jakarta EE (`jakarta.xml.bind`), plugin `org.jvnet.jaxb:jaxb-maven-plugin:4.0.9`
 
 ## Structure
@@ -25,12 +25,19 @@ src/main/resources/
 - Never add `build-helper-maven-plugin` — `target/generated-sources/` is auto-discovered by Maven
 
 ## Build & Run
+
+**Mac/Linux:**
 ```bash
-./handle_project.sh deploy   # build image + run container
-./handle_project.sh start    # start without rebuild
+./handle_project.sh deploy   # build + run
 ./handle_project.sh logs     # follow logs
 ./handle_project.sh status   # health check
 ./handle_project.sh help     # all commands
+```
+
+**Windows (Podman):**
+```powershell
+.\HP.ps1 deploy
+.\HP.ps1 help
 ```
 
 Local Maven build (no container):

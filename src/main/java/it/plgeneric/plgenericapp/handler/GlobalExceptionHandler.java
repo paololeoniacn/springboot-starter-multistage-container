@@ -1,4 +1,4 @@
-package it.mitur.utilityservice.handler;
+package it.plgeneric.plgenericapp.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

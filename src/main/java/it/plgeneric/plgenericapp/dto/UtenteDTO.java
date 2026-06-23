@@ -1,4 +1,4 @@
-package it.mitur.utilityservice.dto;
+package it.plgeneric.plgenericapp.dto;
 
 public class UtenteDTO {
     private Long id;

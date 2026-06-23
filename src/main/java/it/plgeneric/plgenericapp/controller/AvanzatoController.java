@@ -1,6 +1,6 @@
-package it.mitur.utilityservice.controller;
+package it.plgeneric.plgenericapp.controller;
 
-import it.mitur.utilityservice.dto.DettaglioOrdineDTO;
+import it.plgeneric.plgenericapp.dto.DettaglioOrdineDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
