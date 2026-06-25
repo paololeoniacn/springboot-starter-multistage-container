@@ -1,7 +1,7 @@
 # MiTur Starter — Spring Boot Boilerplate
 
 Template production-ready per i package del progetto MiTur/PSN.
-Clona questa repo, esegui `init`, e trovi già posizionati i pattern comuni (logging sicuro, audit S3+PostgreSQL, sicurezza OWASP, WebClient PSN).
+Clona questa repo, esegui `init`, e trovi già posizionati i pattern comuni (logging sicuro, audit S3+PostgreSQL, sicurezza OWASP, WebClient).
 
 ---
 
@@ -31,39 +31,37 @@ Decidi questi tre valori **prima** di partire — li userai durante lo `init`:
 
 | Parametro | Cos'è | Esempio |
 |---|---|---|
-| **App name** | nome kebab-case del package | `tt49-webapp` |
-| **Group ID** | group Maven, solitamente `it.mitur` | `it.mitur` |
-| **Prefisso DB** | prefisso delle tabelle JPA (snake_case, con `_`) | `exp_` |
+| **App name** | nome kebab-case del package | `my-service` |
+| **Group ID** | group Maven (per MiTur: `it.mitur`) | `it.mitur` |
+| **Prefisso DB** | prefisso delle tabelle JPA (snake_case, con `_`) | `svc_` |
 
-Il package Java viene derivato automaticamente: `it.mitur` + `tt49webapp` → `it.mitur.tt49webapp`.
+Il package Java viene derivato automaticamente: `it.mitur` + `myservice` → `it.mitur.myservice`.
 
 ---
 
 ## 2. Guida passo-passo — Creare un nuovo package
 
-### Step 1 — Crea il repo di destinazione su GitLab (prima di tutto)
+### Step 1 — Crea il repo di destinazione (prima di tutto)
 
-Crea il repo **vuoto** su GitLab (niente README, niente `.gitignore`).
-Annotati l'URL che ti dà GitLab, ti serve al Step 4.
+Crea il repo **vuoto** su GitLab/GitHub (niente README, niente `.gitignore`).
+Annotati l'URL, ti serve al Step 3.
 
-> Perché prima? Se cloni il boilerplate e poi non hai ancora il repo GitLab, non puoi fare il push finale.
+> Perché prima? Se cloni il boilerplate e poi non hai ancora il repo, non puoi fare il push finale.
 
 ---
 
-### Step 2 — Clona il boilerplate sul branch corretto
+### Step 2 — Clona il boilerplate
 
 ```bash
-git clone --branch claude_powered_silvio --single-branch \
-  https://github.com/paololeoniacn/springboot-starter-multistage-container.git \
-  nome-tuo-package
-cd nome-tuo-package
+git clone <URL-di-questo-repo> <nome-tuo-package>
+cd <nome-tuo-package>
 ```
 
-Verifica di essere sul branch giusto:
+Verifica il branch attivo e annotati il nome — ti serve al Step 4:
 
 ```bash
 git branch
-# deve mostrare: * claude_powered_silvio
+# es: * main  oppure  * claude_powered_silvio
 ```
 
 ---
@@ -72,15 +70,15 @@ git branch
 
 ```bash
 git remote remove origin
-git remote add origin <URL-del-tuo-repo-GitLab>
+git remote add origin <URL-del-tuo-repo>
 git remote -v
 ```
 
 Output atteso:
 
 ```
-origin  http://localhost:8081/migrazione-tibco-be/nome-tuo-package.git (fetch)
-origin  http://localhost:8081/migrazione-tibco-be/nome-tuo-package.git (push)
+origin  <URL-del-tuo-repo> (fetch)
+origin  <URL-del-tuo-repo> (push)
 ```
 
 ---
@@ -88,7 +86,7 @@ origin  http://localhost:8081/migrazione-tibco-be/nome-tuo-package.git (push)
 ### Step 4 — Rinomina il branch in `main`
 
 ```bash
-git branch -m claude_powered_silvio main
+git branch -m <branch-boilerplate> main
 git branch
 # deve mostrare: * main
 ```
@@ -143,10 +141,10 @@ chmod +x handle_project.sh
 Lo script chiede 4 valori. Rispondi usando i valori decisi al Step 1:
 
 ```
-App name (kebab-case) [starter]:         tt49-webapp
-Group ID               [it.mitur]:        it.mitur
-DB prefix (snake_case) [app_]:            exp_
-Descrizione            [tt49-webapp]:     TT49 WebApp
+App name (kebab-case) [starter]:         my-service
+Group ID               [it.mitur]:        com.myorg
+DB prefix (snake_case) [app_]:            svc_
+Descrizione            [my-service]:      My Service
 ```
 
 Output atteso (nessun errore):
@@ -154,8 +152,8 @@ Output atteso (nessun errore):
 ```
 [INIT] Avvio inizializzazione...
    Sostituzioni completate in N file
-   main: src/main/java/it/mitur/starter -> src/main/java/it/mitur/tt49webapp
-   test: src/test/java/it/mitur/starter -> src/test/java/it/mitur/tt49webapp
+   main: src/main/java/it/mitur/starter -> src/main/java/com/myorg/myservice
+   test: src/test/java/it/mitur/starter -> src/test/java/com/myorg/myservice
    SOA.md, README-XSD.md, dependency-check-suppressions.xml, .gitattributes: rimossi
    README.MD: aggiornato al template di progetto
 [INIT] Completato.
@@ -224,11 +222,9 @@ Punti principali da completare:
 ```bash
 git add .
 git status   # ricontrolla cosa stai committando
-git commit -m "ADD :: init — nome-tuo-package inizializzato da boilerplate MiTur"
+git commit -m "ADD :: init — <nome-tuo-package> inizializzato da boilerplate MiTur"
 git push -u origin main
 ```
-
-Se il push chiede credenziali, usa le tue credenziali GitLab (o il token personale se configurato).
 
 ---
 
@@ -270,7 +266,7 @@ src/main/resources/
   application.properties            # configurazione base con env vars
   application-local.properties      # sviluppo locale
   application-docker.properties     # compose locale
-  application-prod.properties       # produzione PSN
+  application-prod.properties       # produzione
   .env.example                      # template variabili d'ambiente
   xsd/                              # XSD opzionali (JAXB disabilitato)
 
@@ -292,7 +288,7 @@ src/test/resources/
 | S3 Client | `S3Config.java` | configurato da env vars AWS_* |
 | S3 Operations | `S3Service.java` | upload JSON + backup + trigger file |
 | Audit trail | `AuditHelper.java` | S3 + PostgreSQL per ogni req/resp |
-| Logging sicuro | `LogUtil.java` | no stacktrace in PROD, prefisso ❌ su ERROR |
+| Logging sicuro | `LogUtil.java` | no stacktrace in produzione, prefisso ❌ su ERROR |
 | Errori HTTP | `GlobalExceptionHandler.java` + `ErrorResponse.java` | 400/401/500 uniformi |
 | Tabella condivisa | `AnagParameter.java` + Repository | parametri di configurazione DB |
 | Logging per profilo | `logback-spring.xml` | DEV/STAGE → INFO, PROD → ERROR |
@@ -305,8 +301,8 @@ src/test/resources/
 Cerca con `grep -r "TODO: RENAME" src/` (Linux/Mac) o `Select-String -Path src -Pattern "TODO: RENAME" -Recurse` (Windows).
 
 **Classi e tabelle JPA:**
-- `AppInPut` → es. `CamInPut`, tabella `cam_in_put`
-- `AppActivityLog` → es. `CamActivityLog`, tabella `cam_activity_log`
+- `AppInPut` → es. `SvcInPut`, tabella `svc_in_put`
+- `AppActivityLog` → es. `SvcActivityLog`, tabella `svc_activity_log`
 - Aggiorna anche Repository e le firme in `PostgresService` e `AuditHelper`
 
 **Application:**
@@ -315,7 +311,7 @@ Cerca con `grep -r "TODO: RENAME" src/` (Linux/Mac) o `Select-String -Path src -
 
 **Properties:**
 - `spring.application.name` in `application.properties`
-- `mitur.audit.s3-path-prefix` → es. `internal/cammini`
+- `mitur.audit.s3-path-prefix` → es. `internal/my-service`
 
 **WebClient:**
 - `WebClientConfig.java`: aggiungi un bean per ogni API esterna che chiami (vedi commenti `// TODO: RENAME`)
@@ -328,7 +324,7 @@ Cerca con `grep -r "TODO: RENAME" src/` (Linux/Mac) o `Select-String -Path src -
 |---|---|---|---|
 | `DEV` | INFO | tutto | sviluppo locale |
 | `STAGE` | INFO | tutto | test pre-produzione |
-| `PROD` | ERROR | health, info | produzione PSN |
+| `PROD` | ERROR | health, info | produzione |
 | `docker` | INFO | health, info | compose locale |
 | `test` | INFO | — | CI con H2 in-memory |
 
@@ -373,12 +369,12 @@ Il contenuto JSON **non viene mai loggato** — solo il path S3 — per evitare 
 private static final Logger log = LogUtil.getLogger(MyService.class);
 
 log.info("elaborazione avviata per id={}", id);
-LogUtil.error(log, "errore durante upload S3", exception);  // ❌ prefix automatico, no stacktrace in PROD
+LogUtil.error(log, "errore durante upload S3", exception);  // ❌ prefix automatico, no stacktrace in produzione
 ```
 
 **Regola fondamentale:** usa sempre `LogUtil.error(log, msg, exception)` nei `@Service`, mai `e.printStackTrace()` o `log.error(..., e)` diretto.
 
-In PROD: lo stacktrace non viene scritto a livello ERROR (evita flooding dei log PSN). Solo il messaggio.
+In produzione lo stacktrace non viene scritto a livello ERROR — solo il messaggio.
 
 ---
 
@@ -446,7 +442,7 @@ Tutti i test di `@SpringBootTest` girano senza infrastruttura esterna.
 
 ## 13. JAXB (opzionale)
 
-JAXB è **disabilitato per default** — nessuno dei package MiTur di produzione lo usa.
+JAXB è **disabilitato per default**.
 
 Per abilitarlo, decommentare in `pom.xml`:
 1. Le dipendenze `jakarta.xml.bind` e `jaxb-runtime`
@@ -464,22 +460,25 @@ Poi eseguire `mvn generate-sources`. Vedi [README-XSD.md](README-XSD.md) per i d
 mvn dependency-check:check
 ```
 
-Il plugin è già configurato in `pom.xml`. Fallisce la build su CVSS >= 7.
-Soppressioni documentate in `dependency-check-suppressions.xml`.
+Il plugin è già configurato in `pom.xml` — fallisce la build su CVSS >= 7.
+
+> `dependency-check-suppressions.xml` è presente nel boilerplate ma viene rimosso durante `init`.
+> Se hai bisogno di soppressioni nel tuo progetto, ricrealo e aggiungi `--suppression dependency-check-suppressions.xml` alla configurazione del plugin in `pom.xml`.
 
 ---
 
 ## 15. File di root
 
-| File | Descrizione |
-|---|---|
-| `handle_project.sh` | Gestione ciclo di vita (Mac/Linux): `init`, `deploy`, `logs`, `status`, `help` |
-| `handle_project.ps1` | Stessa cosa su Windows (PowerShell) |
-| `Dockerfile` | Multi-stage build: build Maven → runtime JRE slim |
-| `compose.yaml` | Stack locale con container |
-| `.env.example` | Template variabili d'ambiente — copia in `.env` e valorizza |
-| `.gitignore` | Include `.env` (mai committare credenziali) |
-| `CLAUDE.md` | Regole e struttura per Claude Code |
-| `SOA.md` | Stato aggiornato del progetto e architettura |
-| `README-XSD.md` | Guida JAXB opzionale |
-| `dependency-check-suppressions.xml` | Soppressioni OWASP documentate |
+| File | Descrizione | Rimosso da `init` |
+|---|---|---|
+| `handle_project.sh` | Gestione ciclo di vita (Mac/Linux): `init`, `deploy`, `logs`, `status`, `help` | no |
+| `handle_project.ps1` | Stessa cosa su Windows (PowerShell) | no |
+| `Dockerfile` | Multi-stage build: build Maven → runtime JRE slim | no |
+| `compose.yaml` | Stack locale con container | no |
+| `.env.example` | Template variabili d'ambiente — copia in `.env` e valorizza | no |
+| `.gitignore` | Include `.env` (mai committare credenziali) | no |
+| `CLAUDE.md` | Regole e struttura per Claude Code | no |
+| `SOA.md` | Stato del boilerplate — non pertinente per il progetto | **sì** |
+| `README-XSD.md` | Guida JAXB opzionale | **sì** |
+| `dependency-check-suppressions.xml` | Soppressioni OWASP (vedi sezione 14 per riabilitarle) | **sì** |
+| `.gitattributes` | Regole line ending — non necessario | **sì** |
