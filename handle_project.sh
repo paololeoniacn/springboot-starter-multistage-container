@@ -223,6 +223,82 @@ cmd_init() {
         rmdir "src/test/java/it/mitur" 2>/dev/null || true
     fi
 
+    # ── Cleanup boilerplate docs + README di progetto ────────────────────────────
+    rm -f SOA.md README-XSD.md dependency-check-suppressions.xml .gitattributes
+    cat > README.MD << 'ENDOFREADME'
+# __APP_NAME__
+
+Microservizio Spring Boot — progetto MiTur/PSN.
+
+## Prerequisiti
+
+- Java 17 / Maven 3.9.9
+- Podman o Docker installato e avviato
+
+## Avvio (consigliato)
+
+**Windows (PowerShell):**
+```powershell
+.\handle_project.ps1 deploy
+```
+
+**Mac/Linux (Bash):**
+```bash
+./handle_project.sh deploy
+```
+
+## Comandi
+
+| Comando  | Descrizione                |
+|----------|----------------------------|
+| `deploy` | Build + avvio container    |
+| `logs`   | Follow log del container   |
+| `status` | Health check               |
+| `help`   | Tutti i comandi            |
+
+## Endpoint
+
+- `GET /hello` — smoke test (rimuovere dopo sviluppo iniziale)
+- `GET /actuator/health` — health check (liveness/readiness probe)
+- `GET /swagger-ui.html` — API docs
+
+## Struttura del progetto
+
+```
+src/main/java/__JAVA_PKG__/
+  ...Application.java
+  config/
+  controller/
+  dto/
+  entity/
+  exception/
+  repository/
+  service/utils/
+  utils/
+```
+
+## Build Maven
+
+```bash
+mvn clean package -DskipTests
+mvn test -Dspring.profiles.active=test
+```
+
+## Variabili d'ambiente
+
+Copia `.env.example` in `.env` e valorizza:
+
+- `AWS_*` — credenziali S3
+- `POSTGRES_*` — credenziali database
+- `ENV` — profilo attivo (`DEV` / `STAGE` / `PROD`)
+
+> `.env` non viene committato. Usa `.env.example` come riferimento per il team.
+ENDOFREADME
+    eval "$SED_I 's|__APP_NAME__|${APP_NAME}|g' README.MD"
+    eval "$SED_I 's|__JAVA_PKG__|${JAVA_PKG_PATH}|g' README.MD"
+    echo -e "   SOA.md, README-XSD.md: rimossi"
+    echo -e "   README.MD: aggiornato al template di progetto"
+
     echo -e "\n${GREEN}✅ Progetto inizializzato come '${APP_NAME}'${RESET}"
     echo -e "   Java package : ${CYAN}${JAVA_PKG}${RESET}"
     echo -e "   DB prefix    : ${CYAN}${DB_PREFIX}${RESET}"

@@ -143,16 +143,20 @@ function Replace-InFile {
 function Remove-EmptyDirs {
     param([string]$Root)
     if (-not (Test-Path $Root)) { return }
-    # Bottom-up: le sottodirectory prima della radice
-    Get-ChildItem -Path $Root -Recurse -Directory |
-        Sort-Object FullName -Descending |
-        ForEach-Object {
-            if ((Get-ChildItem $_.FullName -Force).Count -eq 0) {
-                Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+    try {
+        # Bottom-up: le sottodirectory prima della radice
+        Get-ChildItem -Path $Root -Recurse -Directory -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            ForEach-Object {
+                if (@(Get-ChildItem $_.FullName -Force -ErrorAction SilentlyContinue).Count -eq 0) {
+                    Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+                }
             }
+        if (@(Get-ChildItem $Root -Force -ErrorAction SilentlyContinue).Count -eq 0) {
+            Remove-Item $Root -Force -ErrorAction SilentlyContinue
         }
-    if ((Get-ChildItem $Root -Force -ErrorAction SilentlyContinue).Count -eq 0) {
-        Remove-Item $Root -Force -ErrorAction SilentlyContinue
+    } catch {
+        # Cleanup non critico — ignorato silenziosamente
     }
 }
 
@@ -283,6 +287,87 @@ function Cmd-Init {
         Write-Host "   test: $oldTestPath -> $newTestPath" -ForegroundColor Gray
         Remove-EmptyDirs -Root "src\test\java\it\mitur"
     }
+
+    # ── Cleanup boilerplate docs + README di progetto ────────────────────────────
+    Remove-Item -Path "SOA.md"                            -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "README-XSD.md"                     -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "dependency-check-suppressions.xml" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path ".gitattributes"                    -Force -ErrorAction SilentlyContinue
+
+    $readmeContent = @'
+# __APP_NAME__
+
+Microservizio Spring Boot — progetto MiTur/PSN.
+
+## Prerequisiti
+
+- Java 17 / Maven 3.9.9
+- Podman o Docker installato e avviato
+
+## Avvio (consigliato)
+
+**Windows (PowerShell):**
+```powershell
+.\handle_project.ps1 deploy
+```
+
+**Mac/Linux (Bash):**
+```bash
+./handle_project.sh deploy
+```
+
+## Comandi
+
+| Comando  | Descrizione                |
+|----------|----------------------------|
+| `deploy` | Build + avvio container    |
+| `logs`   | Follow log del container   |
+| `status` | Health check               |
+| `help`   | Tutti i comandi            |
+
+## Endpoint
+
+- `GET /hello` — smoke test (rimuovere dopo sviluppo iniziale)
+- `GET /actuator/health` — health check (liveness/readiness probe)
+- `GET /swagger-ui.html` — API docs
+
+## Struttura del progetto
+
+```
+src/main/java/__JAVA_PKG__/
+  ...Application.java
+  config/
+  controller/
+  dto/
+  entity/
+  exception/
+  repository/
+  service/utils/
+  utils/
+```
+
+## Build Maven
+
+```bash
+mvn clean package -DskipTests
+mvn test -Dspring.profiles.active=test
+```
+
+## Variabili d'ambiente
+
+Copia `.env.example` in `.env` e valorizza:
+
+- `AWS_*` — credenziali S3
+- `POSTGRES_*` — credenziali database
+- `ENV` — profilo attivo (`DEV` / `STAGE` / `PROD`)
+
+> `.env` non viene committato. Usa `.env.example` come riferimento per il team.
+'@
+    $readmeContent = $readmeContent -replace '__APP_NAME__', $appName
+    $readmeContent = $readmeContent -replace '__JAVA_PKG__', ($javaPkgPath -replace '\\', '/')
+    [System.IO.File]::WriteAllText("README.MD", $readmeContent, [System.Text.UTF8Encoding]::new($false))
+    Write-Host "   SOA.md, README-XSD.md: rimossi"              -ForegroundColor Gray
+    Write-Host "   README.MD: aggiornato al template di progetto" -ForegroundColor Gray
 
     # ── Riepilogo finale ──────────────────────────────────────────────────────
     Write-Host ""
